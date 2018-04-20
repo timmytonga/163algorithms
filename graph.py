@@ -7,7 +7,8 @@ class GraphException(Exception):
 class Graph:
     ''' Represent a graph object. Undirected by default. Initialize empty graph '''
     def __init__(self, graph=defaultdict(set), weightDict={}, vertices=set(),transitionMatrix=[], isDirected = False ):
-        ''' Input edgeDict --> get vertices from there.... '''
+        ''' Input edgeDict --> get vertices from there.
+            Graph representation: {'vertex name': {set of destination} '''
         self.directed = isDirected  # directed or not
         self.isWeighted = False     # default non weighted
         self.vertices = vertices    # {'A', 'B', 'C', ... }
@@ -43,7 +44,7 @@ class Graph:
         return visited
                     
     def bfs(self, start):
-        ''' Return all reachable vertex from start using shortest path  '''
+        ''' Return all reachable vertex from start -> shortest distance'''
         reached = { start }
         q = [start]
         while len(q) != 0:
@@ -51,12 +52,14 @@ class Graph:
             for dest in self.graph[v]:
                 if dest not in reached:
                     reached.add(dest)
-                    
+                    q.insert(0,dest)
+        return reached
 
     def all_pairs_shortest(self):
         pass
 
     def topological_sort(self):
+        ''' Reverse postorder dfs tree '''
         pass
 
     def shortest_path_dijkstra(self, start):
