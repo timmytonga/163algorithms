@@ -1,4 +1,5 @@
-from collection import defaultdict
+from collections import defaultdict
+import math 
 
 class GraphException(Exception):
     def __init__(self, message=""):
@@ -6,14 +7,13 @@ class GraphException(Exception):
 
 class Graph:
     ''' Represent a graph object. Undirected by default. Initialize empty graph '''
-
 ######################## SETUP AND UTILITIES ############################### 
     def __init__(self, graph=defaultdict(set), weightDict={}, vertices=set(),transitionMatrix=[], isDirected = False ):
         ''' Input edgeDict --> get vertices from there.... '''
         self.directed = isDirected  # directed or not
         self.isWeighted = False     # default non weighted
         self.vertices = vertices    # {'A', 'B', 'C', ... }
-        self.graph = graph          # {'A':{'B','C'}, ... } 
+        self.graph = graph          # {'A':['B','C'], ... } 
         self.weights = weightDict   # {('A','B'): 24, ... }
 
     def add_vertex(self, v):
@@ -27,9 +27,9 @@ class Graph:
             self.add_vertex(source)
         if dest not in self.graph:
             self.add_vertex(dest)
-        self.graph[source].add(dest)
+        self.graph[source].append(dest)
         if not self.directed:
-            self.graph[dest].add(source)
+            self.graph[dest].append(source)
 
     def degree(self, vertex):
         ''' return the degree (in + out deg) of that vertex '''
@@ -44,10 +44,8 @@ class Graph:
         ''' Remove the number of outdegree edges of a vertex '''
         pass
 
-    
-
-##################### ALGORITHMS #############################
-''' See NOTES regarding algorithms runnability on directed vs. undirected graphs '''
+    ##################### ALGORITHMS #############################
+    ''' See NOTES regarding algorithms runnability on directed vs. undirected graphs '''
     def mst_prim(self, seed):
         pass
 
@@ -69,7 +67,11 @@ class Graph:
                     visit(dest)
         visit(start)
         return visited
-                    
+
+    def tarjan_strongly_connected_components(self):
+        ''' return a list of sets of strongly connected components'''
+        pass
+
     def bfs(self, start):
         ''' Return all reachable vertex from start using shortest path
             using bfs traversal '''
@@ -83,12 +85,26 @@ class Graph:
         return reached     
 
     def topological_sort(self):
-        ''' Directed graphs only '''
-        pass
+        ''' Directed graphs only
+        Return the reversed postordering of a graph '''
+        visited = set()
+        postorder = [] 
+        def visit(v):
+            visited.add(v)
+            for w in self.graph[v]:
+                if w not in visited:
+                    visit(w)
+            postorder.append(v)     # this adds 
+        for v in self.graph:
+            if v not in visited:
+                visit(v)
+        return postorder[::-1]   # we want to return the reversed list for toporder
+
 
     def dijkstra(self, start):
         ''' Compute shortest path from a given start vertex
-        NOTE: NO NEGATIVE EDGE WEIGHTS -- use bellman_ford instead ''' 
+        NOTE: NO NEGATIVE EDGE WEIGHTS -- use bellman_ford instead '''
+        inf = math.inf
         pass
 
     def bellman_ford(self, start):
@@ -103,4 +119,30 @@ class Graph:
 
     def johnson(self):
         ''' All pairs shortest paths '''
-        pass 
+        pass
+
+    #################################### OTHER UTILITIES ####################
+    def draw_graph(self):
+        ''' somehow draw a graph... maybe on a new window with canvas '''
+        pass
+
+
+def random_graph(numberVertices, edgeDensity, directed=False, weights=False):
+    ''' make a random graph with given number of vertices and number of edges
+    as a fraction of a complete graph. vertices are named '1', '2', ...
+    NOTE: edgeDensity must be between 0 and 1
+    Return a graph object.'''
+    pass
+
+if __name__=="__main__":
+    ''' test algorithms here '''
+    graph1 = { 'a' : ['e','b','c'],
+               'b' : ['e','d'],
+               'c' : ['b'],
+               'd' : [],
+               'e' : [],
+               'f' : ['c', 'd', 'h'],
+               'g' : ['f','h'],
+               'h' : []}
+    g1 = Graph(graph1)
+    print(g1.topological_sort())
