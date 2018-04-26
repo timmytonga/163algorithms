@@ -1,5 +1,6 @@
 from collections import defaultdict
-import math 
+import math
+import heapq # for priority queue 
 
 class GraphException(Exception):
     def __init__(self, message=""):
@@ -157,6 +158,20 @@ class Graph:
             D[vertex] = inf
             if vertex == start:
                 D[vertex] = 0
+        ### Initialize priority Q #### 
+        Q = [(y,x) for x,y in D.items()]
+        heapq.heapify(Q) # Q is now a min heap of D
+        final = set()           # final set of vertices to keep track
+        l = len(D)              # length of D to compare final
+        ### Dijkstra Magic ### 
+        while len(final) != l:
+            dv, v = heapq.heappop(Q)    # dv is distance of v and v is smallest vertex
+            final.add(v)                # add v to final set 
+            for w in self.graph[v]:     # RELAX
+                if D[v] + self.weight(v,w) < D[w]: 
+                    D[w] = D[v] + self.weight(v,w)
+                    P[w] = v
+                    heapq.heappush(Q, (D[w], w))
         return D, P 
         
 
@@ -179,19 +194,24 @@ class Graph:
         ''' somehow draw a graph... maybe on a new window with canvas '''
         pass
     def __str__(self):
+        ''' Improve this somehow... right now just print dict '''
         return str(self.graph)
-    
-    def construct_path(self, start, end, P):
-        u = None
-        q = [end]
-        v = end
-        while u != start:
-            v = P[v]
-            q.insert(0,v)
-            if v == start:
-                return q
-            elif v == None:
-                raise GraphException("cannot find path...")
+
+
+
+
+def construct_path(start, end, P):
+    ''' Take P and 2 vertices and give the intermediary vertices '''
+    u = None
+    q = [end]
+    v = end
+    while u != start:
+        v = P[v]
+        q.insert(0,v)
+        if v == start:
+            return q
+        elif v == None:
+            raise GraphException("cannot find path...")
             
         
 
@@ -204,6 +224,7 @@ def random_graph(numberVertices, edgeDensity, directed=False, weights=False):
 
 if __name__=="__main__":
     ''' test algorithms here '''
+    # some examples ... 
     graph1 = { 'a' : ['e','b','c'],
                'b' : ['e','d'],
                'c' : ['b'],
@@ -231,6 +252,18 @@ if __name__=="__main__":
                             ('f','g'):2, ('g', 'end'):2, ('h','e'):4,
                             ('h','i'):6, ('i', 'f'):3, ('i','j'):4,
                             ('j','end'):1}
+
+    weightedGraph2 = {'a':['b', 'c'],
+                      'b':['c','d','e'],
+                      'c':['b','d','e'],
+                      'd':[],
+                      'e':['d']}
+    weightedGraph2weights = {('a','b'):4, ('a','c'):2, ('b','c'):3, ('b','d'):2,
+                             ('b','e'):3, ('c','b'):1, ('c','e'):5, ('c','d'):4,
+                             ('e','d'):1}
     g1 = Graph(graph1)
-    wg2 = Graph(weightedGraph1, weightedGraph1weights, isDirected=True)
-    print(g1.topological_sort())
+    wg1 = Graph(weightedGraph1, weightedGraph1weights, isDirected=True)
+    wg2 = Graph(weightedGraph2, weightedGraph2weights, isDirected=True)
+    d, p  = wg1.dag_shortest_path('s')
+    #print(wg1.construct_path('s','end',p))
+    #print(g1.topological_sort())
