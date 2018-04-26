@@ -118,13 +118,6 @@ class Graph:
         else:
             raise GraphException("Weight does not exist for edge " + u + " " + v)
 
-    def relax(self, u, v , D, P):
-        ''' relax given an edge (u,v) and update D and P accordingly
-        D is the distance to v and P is the previous vertex to v '''
-        if D[u] + self.weight(u,v) < D[v]:
-            D[v] = D[u] + self.weight(u,v)
-            P[v] = u
-
     def dag_shortest_path(self, start):
         if start not in self.graph:
             raise GraphException("Invalid start vertex!")
@@ -145,8 +138,7 @@ class Graph:
                     P[v] = u
         return D, P 
         
-        
-    def dijkstra(self, start):
+    def dijkstra(self, start): # O(m log n) for heap because loop thru edges m times and logn each loop
         ''' Compute shortest path from a given start vertex
         NOTE: NO NEGATIVE EDGE WEIGHTS -- use bellman_ford instead '''
         inf = math.inf
@@ -164,21 +156,41 @@ class Graph:
         final = set()           # final set of vertices to keep track
         l = len(D)              # length of D to compare final
         ### Dijkstra Magic ### 
-        while len(final) != l:
+        while len(final) != l:          # this will be executed n times
             dv, v = heapq.heappop(Q)    # dv is distance of v and v is smallest vertex
             final.add(v)                # add v to final set 
             for w in self.graph[v]:     # RELAX
                 if D[v] + self.weight(v,w) < D[w]: 
                     D[w] = D[v] + self.weight(v,w)
                     P[w] = v
-                    heapq.heappush(Q, (D[w], w))
+                    heapq.heappush(Q, (D[w], w)) # modify priority queue 
         return D, P 
-        
 
+        
+    def relax(self, u, v , D, P):
+        ''' relax given an edge (u,v) and update D and P accordingly
+        D is the distance to v and P is the previous vertex to v '''
+        if D[u] + self.weight(u,v) < D[v]:
+            D[v] = D[u] + self.weight(u,v)
+            P[v] = u
+            
     def bellman_ford(self, start):
         ''' Compute shortest path from a given start vertex
         NO NEGATIVE CYCLES ''' 
-        pass
+        inf = math.inf
+        D = {} # D[v] = distance from start to vertex v 
+        P = {} # P[v] = predecessor of v on that path
+        # initialize all the initial distances to be infinity 
+        for vertex in self.graph:
+            P[vertex] = None
+            D[vertex] = inf
+            if vertex == start:
+                D[vertex] = 0
+        for i in range(n-1): # relax all edges n-1 times
+            for u in self.graph:
+                for v in self.graph[u]:
+                    self.relax(u,v,D,P)
+        return D, P
 
     def astar(self, start, goal, h):
         ''' compute shortest path from start to goal FASTER than Dijkstra
@@ -193,6 +205,7 @@ class Graph:
     def draw_graph(self):
         ''' somehow draw a graph... maybe on a new window with canvas '''
         pass
+    
     def __str__(self):
         ''' Improve this somehow... right now just print dict '''
         return str(self.graph)
@@ -212,15 +225,19 @@ def construct_path(start, end, P):
             return q
         elif v == None:
             raise GraphException("cannot find path...")
-            
-        
 
-def random_graph(numberVertices, edgeDensity, directed=False, weights=False):
+def random_graph(numberVertices, edgeDensity, directed=False, weights=False, weightsRange=(1,10)):
     ''' make a random graph with given number of vertices and number of edges
     as a fraction of a complete graph. vertices are named '1', '2', ...
     NOTE: edgeDensity must be between 0 and 1
     Return a graph object.'''
     pass
+
+
+def make_graph_from_weight_dict(weightDict):
+    ''' given a weight dict return a graph object with everything initialized''' 
+    pass
+
 
 if __name__=="__main__":
     ''' test algorithms here '''
