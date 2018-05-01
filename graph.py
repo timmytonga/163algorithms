@@ -38,20 +38,38 @@ class Graph:
 
     def degree(self, vertex):
         ''' return the degree (in + out deg) of that vertex '''
-        pass
+        result = 0
+        for i in self.graph[vertex]: # for destination in graph
+            result+=1
+        if not self.directed:
+            return result
+        for v in self.graph:
+            if vertex in self.graph[v]:
+                result +=1
+        return result 
 
     def in_degree(self, vertex):
         '''Remove the number of indegree of a vertex
             only for directed graph... return degree for undirected '''
-        pass
+        result = 0
+        for v in self.graph:
+            if vertex in self.graph[v]:
+                result +=1
+        return result 
 
     def out_degree(self, vertex):
         ''' Remove the number of outdegree edges of a vertex '''
-        pass
+        result = 0
+        for i in self.graph[vertex]: # for destination in graph
+            result+=1
+        return result
 
     ##################### ALGORITHMS #############################
     ''' See NOTES regarding algorithms runnability on directed vs. undirected graphs '''
     def mst_prim(self, seed):
+        ''' return a minimum spanning tree graph '''
+        if self.directed:
+            raise GraphException("cannot run PrimMST on directed graph")
         pass
 
     def mst_boruvka(self):
@@ -174,7 +192,7 @@ class Graph:
             D[v] = D[u] + self.weight(u,v)
             P[v] = u
             
-    def bellman_ford(self, start):
+    def bellman_ford(self, start): ## IMPLEMENT VARIATIONS TO OBTAIN BETTER PERFORMANCE 
         ''' Compute shortest path from a given start vertex
         NO NEGATIVE CYCLES ''' 
         inf = math.inf
@@ -187,7 +205,7 @@ class Graph:
             if vertex == start:
                 D[vertex] = 0
         for i in range(n-1): # relax all edges n-1 times
-            for u in self.graph:
+            for u in self.graph: # can improve by stop when no change after relax
                 for v in self.graph[u]:
                     self.relax(u,v,D,P)
         return D, P
@@ -198,8 +216,12 @@ class Graph:
         pass
 
     def johnson(self):
-        ''' All pairs shortest paths '''
-        pass
+        ''' All pairs shortest paths
+        Initialize a vertex, s, that is reachable to all other vertices with edge 0
+        Compute the shortest path from s to all other vertices
+        Use that to turn all paths/edge weights positive
+        Run Dijkstra on all to find all pairs shortest path '''
+        pass    
 
     #################################### OTHER UTILITIES ####################
     def draw_graph(self):
@@ -226,7 +248,7 @@ def construct_path(start, end, P):
         elif v == None:
             raise GraphException("cannot find path...")
 
-def random_graph(numberVertices, edgeDensity, directed=False, weights=False, weightsRange=(1,10)):
+def random_graph(numberVertices, edgeDensity, directed=False, weighted=False, weightsRange=(1,10)):
     ''' make a random graph with given number of vertices and number of edges
     as a fraction of a complete graph. vertices are named '1', '2', ...
     NOTE: edgeDensity must be between 0 and 1
