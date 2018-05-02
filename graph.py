@@ -152,8 +152,8 @@ class Graph:
         for u in toporder:
             for v in self.graph[u]: # for each edge uv... relax
                 if D[u] + self.weight(u,v) < D[v]: # this is relax
-                    D[v] = D[u] + self.weight(u,v)
-                    P[v] = u
+                    D[v] = D[u] + self.weight(u,v) # update shortest dist
+                    P[v] = u                       # update parent 
         return D, P 
         
     def dijkstra(self, start): # O(m log n) for heap because loop thru edges m times and logn each loop
@@ -221,7 +221,31 @@ class Graph:
         Compute the shortest path from s to all other vertices
         Use that to turn all paths/edge weights positive
         Run Dijkstra on all to find all pairs shortest path '''
-        pass    
+        pass
+
+    def schulze_voting(self):
+        #todo
+        pass
+
+    def widest_path(self,start):
+        #todo
+        pass
+
+    def euler_tour(self):
+        #todo
+        pass
+
+    def dynamic_tsp(self,start):
+        #todo
+        pass
+
+    def mst_tsp_2approx(self):
+        #todo
+        pass
+
+    def tsp_christofides(self):
+        #todo 1.5 approx
+        pass 
 
     #################################### OTHER UTILITIES ####################
     def draw_graph(self):
