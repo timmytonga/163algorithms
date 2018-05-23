@@ -9,10 +9,11 @@ class GraphException(Exception):
 class Graph:
     ''' Represent a graph object. Undirected by default. Initialize empty graph '''
 ######################## SETUP AND UTILITIES ############################### 
-    def __init__(self, graph=defaultdict(set), weightDict={}, vertices=set(),transitionMatrix=[], isDirected = False ):
+    def __init__(self, graph=defaultdict(list), weightDict={}, vertices=set(),transitionMatrix=[],
+                 isDirected = False):
         ''' Input edgeDict --> get vertices from there.... '''
         self.directed = isDirected  # directed or not
-        self.isWeighted = False     # default non weighted
+        self.isWeighted = False     # is weighted determined by weightDict
         if len(weightDict) > 0:
             self.isWeighted = True
         self.vertices = vertices    # {'A', 'B', 'C', ... }
@@ -21,6 +22,16 @@ class Graph:
         for i in self.graph:
             self.vertices.add(i)
 
+    def weight(self, u, v):
+        ''' return the weight of an edge if exists in the provided dict
+        else raises an error '''
+        if (u,v) in self.weights:
+            return self.weights[u,v]
+        elif not self.directed and (v,u) in self.weights:
+            return self.weights[v,u]
+        else:
+            raise GraphException("Weight does not exist for edge " + u + " " + v)
+
     def add_vertex(self, v):
         if v in self.graph:
             raise GraphException("add_vertex: Vertex " + v + "already in graph")
@@ -28,13 +39,18 @@ class Graph:
         self.graph[v] = {}
     
     def add_edge(self, source, dest):
+        if source in self.graph and dest in self.graph[source]:
+            raise GraphException("Edge " + source + "," + dest+ "already in graph.")
         if source not in self.graph:
             self.add_vertex(source)
+            self.graph[source] = []
         if dest not in self.graph:
             self.add_vertex(dest)
+            self.graph[dest] = []
         self.graph[source].append(dest)
         if not self.directed:
             self.graph[dest].append(source)
+            
 
     def degree(self, vertex):
         ''' return the degree (in + out deg) of that vertex '''
@@ -70,7 +86,15 @@ class Graph:
         ''' return a minimum spanning tree graph '''
         if self.directed:
             raise GraphException("cannot run PrimMST on directed graph")
-        pass
+        if seed not in self.graph:
+            raise GraphException("Invalid seed vertex")
+        
+        g = Graph(isDirected=True) # initialize an undirected graph
+        g.add_vertex(seed)
+        avail_edges = {} # dict of available edges
+        for edge in self.graph[seed]:
+            pass
+        #### TO DO ### !!!! 
 
     def mst_boruvka(self):
         pass
@@ -126,16 +150,7 @@ class Graph:
                 visit(v)
         return postorder[::-1]   # we want to return the reversed list for toporder
 
-    def weight(self, u, v):
-        ''' return the weight of an edge if exists in the provided dict
-        else raises an error '''
-        if (u,v) in self.weights:
-            return self.weights[u,v]
-        elif (v,u) in self.weights:
-            return self.weights[v,u]
-        else:
-            raise GraphException("Weight does not exist for edge " + u + " " + v)
-
+    
     def dag_shortest_path(self, start):
         if start not in self.graph:
             raise GraphException("Invalid start vertex!")
@@ -169,7 +184,7 @@ class Graph:
             if vertex == start:
                 D[vertex] = 0
         ### Initialize priority Q #### 
-        Q = [(y,x) for x,y in D.items()]
+        Q = [(0, start)]
         heapq.heapify(Q) # Q is now a min heap of D
         final = set()           # final set of vertices to keep track
         l = len(D)              # length of D to compare final
@@ -177,7 +192,7 @@ class Graph:
         while len(final) != l:          # this will be executed n times
             dv, v = heapq.heappop(Q)    # dv is distance of v and v is smallest vertex
             final.add(v)                # add v to final set 
-            for w in self.graph[v]:     # RELAX
+            for w in self.graph[v]:     # RELAX all edges v-w
                 if D[v] + self.weight(v,w) < D[w]: 
                     D[w] = D[v] + self.weight(v,w)
                     P[w] = v
@@ -213,6 +228,7 @@ class Graph:
     def astar(self, start, goal, h):
         ''' compute shortest path from start to goal FASTER than Dijkstra
         h is a heuristic function that returns the estimated cost to a point from start ''' 
+        # 
         pass
 
     def johnson(self):
@@ -223,13 +239,39 @@ class Graph:
         Run Dijkstra on all to find all pairs shortest path '''
         pass
 
+    def widest_path(self,start):
+        ''' Return D and P where D[u] returns the widest path from start to u
+        P[u] returns the previous node on the widest path '''
+        inf = math.inf
+        D = {} # D[v] = widest path from start to vertex v 
+        P = {} # P[v] = predecessor of v on that path
+        # initialize all the initial distances to be infinity 
+        for vertex in self.graph:
+            P[vertex] = None
+            D[vertex] = -inf
+            if vertex == start:
+                D[vertex] = inf
+        ### Initialize priority Q #### 
+        Q = [(0, start)]
+        final = set()           # final set of vertices to keep track
+        l = len(D)              # length of D to compare final
+        ### Dijkstra Magic ### 
+        while len(final) != l:          # this will be executed n times
+            dv, v = Q.pop(0)            # dv is distance of v and v is smallest vertex
+            final.add(v)                # add v to final set 
+            for w in self.graph[v]:     # RELAX all edges v-w from v
+                takeWidth = min( D[v], self.weight(v,w) )  # the width of the path if were to take v-w
+                if takeWidth > D[w]: 
+                    D[w] = takeWidth
+                    P[w] = v
+                    Q.append( (D[w], w)) # modify priority queue 
+        return D, P 
+
+
     def schulze_voting(self):
         #todo
         pass
 
-    def widest_path(self,start):
-        #todo
-        pass
 
     def euler_tour(self):
         #todo
@@ -245,7 +287,9 @@ class Graph:
 
     def tsp_christofides(self):
         #todo 1.5 approx
-        pass 
+        pass
+
+    
 
     #################################### OTHER UTILITIES ####################
     def draw_graph(self):
@@ -257,8 +301,57 @@ class Graph:
         return str(self.graph)
 
 
+class NetworkFlow(Graph):
+    ''' Network flow class to solve network flow problems '''
+    def __init__(self, graph={}, source='s', sink='t'):
+        ''' Input is a dict with vertices and destination with tuple value
+        indicating flow and capacities. Leave flow = 0 for default
+        e.g.: a->b with flow 2, capacity 10 is: self.graph['a']['b'] = (2,10)'''
+        self.graph = graph
+        self.source = source
+        self.sink = sink
 
 
+    def getCap(self, u, v):
+        ''' return capacity of edge u->v'''
+        return self.graph[u][v][1]
+
+    def getFlow(self, u, v):
+        ''' return flow amount of edge u->v'''
+        return self.graph[u][v][0]
+
+    def isValidVertex(self, u):
+        ''' Check:  (1) Flow <= capacity
+                    (2) In flow == out flow'''
+        outFlow = 0
+        inFlow = 0
+        for v in self.graph[u]:
+            flow, cap = self.graph[u][v]
+            if flow > cap or flow < 0:
+                return False
+            outFlow += flow
+        for v in self.graph:
+            if u in self.graph[v] and v != u:
+                inFlow += self.graph[v][u][1]
+        return outFlow == inFlow
+            
+    def isValidFlow(self):
+        ''' return True if given config of graph is valid '''
+        for v in self.graph:
+            if v != self.source and v!= self.sink:
+                if not isValidVertex(v):
+                    return False
+        return True
+
+    def findMaxFlow(self):
+        ''' return the maxflow of this graph '''
+        pass
+
+    def findMinCut(self):
+        ''' return mincut ??? '''
+        pass
+
+    
 def construct_path(start, end, P):
     ''' Take P and 2 vertices and give the intermediary vertices '''
     u = None
@@ -277,13 +370,19 @@ def random_graph(numberVertices, edgeDensity, directed=False, weighted=False, we
     as a fraction of a complete graph. vertices are named '1', '2', ...
     NOTE: edgeDensity must be between 0 and 1
     Return a graph object.'''
-    pass
+    if edgeDensity not in range(0,1):
+        raise GraphException("ERROR: edgeDensity must be between 0 and 1")
+    # TO DO 
 
 
-def make_graph_from_weight_dict(weightDict):
-    ''' given a weight dict return a graph object with everything initialized''' 
-    pass
-
+def make_graph_from_weight_dict(weightDict, directed=True):
+    ''' given a weight dict return a graph object with everything initialized
+    no vertices without edges ''' 
+    result = Graph(weightDict=weightDict, isDirected=directed)
+    edges = list(weightDict.keys())
+    for edge in edges: # for edge in weight dict
+        result.add_edge(edge[0], edge[1])
+    return result
 
 if __name__=="__main__":
     ''' test algorithms here '''
@@ -324,6 +423,11 @@ if __name__=="__main__":
     weightedGraph2weights = {('a','b'):4, ('a','c'):2, ('b','c'):3, ('b','d'):2,
                              ('b','e'):3, ('c','b'):1, ('c','e'):5, ('c','d'):4,
                              ('e','d'):1}
+
+    flow1 = { ('s', 'a'):6, ('s','b'):2, ('a','c'):3, ('a','d'):5, ('b','c'):7, ('b','d'):4,
+              ('c','t'):8, ('d','t'):1}
+
+    fg1 = make_graph_from_weight_dict(flow1)
     g1 = Graph(graph1)
     wg1 = Graph(weightedGraph1, weightedGraph1weights, isDirected=True)
     wg2 = Graph(weightedGraph2, weightedGraph2weights, isDirected=True)
