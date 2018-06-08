@@ -1,3 +1,6 @@
+# by Tim Nguyen (for CS163 UCI)
+# NOTE: WILL ONLY WORK WITH PYTHON 3.0+ 
+
 from collections import defaultdict
 import math
 import heapq # for priority queue 
@@ -12,16 +15,26 @@ class Graph:
     def __init__(self, graph=defaultdict(list), weightDict={}, vertices=set(),transitionMatrix=[],
                  isDirected = False):
         ''' Input edgeDict --> get vertices from there.... '''
+        # initialize
         self.directed = isDirected  # directed or not
         self.isWeighted = False     # is weighted determined by weightDict
-        if len(weightDict) > 0:
-            self.isWeighted = True
-        self.vertices = vertices    # {'A', 'B', 'C', ... }
         self.graph = graph          # {'A':['B','C'], ... } 
         self.weights = weightDict   # {('A','B'): 24, ... }
-        for i in self.graph:
-            self.vertices.add(i)
+        # setup:
+        self.vertices = set(self.graph.keys())
+        if not self.directed:       # if not directed then make undirected
+            self.makeUndirected()
+        if len(weightDict) > 0:
+            self.isWeighted = True
 
+    def makeUndirected(self):
+        ''' make edges go both ways -- unweighted '''
+        for v in self.graph:
+            for w in self.graph[v]:
+                if v not in self.graph[w]:
+                    self.graph[w].append(v)
+            
+        
     def weight(self, u, v):
         ''' return the weight of an edge if exists in the provided dict
         else raises an error '''
@@ -50,8 +63,30 @@ class Graph:
         self.graph[source].append(dest)
         if not self.directed:
             self.graph[dest].append(source)
-            
 
+    def remove_edge(self, v, w):
+        ''' remove an edge '''
+        if v not in self.graph:
+            # raise exception?
+            return
+        self.graph[v].remove(w) # raise an exception if no edge
+        if not self.directed:
+            self.graph[w].remove(v)
+        
+    def remove_vertex(self, v):
+        if v not in self.graph:
+            # raise exception?
+            return
+        self.vertices.remove(v)
+        del self.graph[v]
+        for p in self.weights:
+            if v in p:
+                del self.weights[p]
+        
+    def neighbors(self,v):
+        ''' return a set of neighbors vertices of v for undirected only '''
+        return set(self.graph[v])
+    
     def degree(self, vertex):
         ''' return the degree (in + out deg) of that vertex '''
         result = 0
@@ -272,7 +307,6 @@ class Graph:
         #todo
         pass
 
-
     def euler_tour(self):
         #todo
         pass
@@ -289,7 +323,40 @@ class Graph:
         #todo 1.5 approx
         pass
 
+    def elimination_ordering(self):
+        ''' return a list of elimination ordering of a graph '''
+        pass
     
+    def degeneracy_ordering(self):
+        ''' return the degeneracy ordering of a graph as a list '''
+        pass
+
+    
+    def bron_kerbosch_nopivot(self):
+        ''' List all maximal cliques -> return a list of sets of vertices that form
+            maximal cliques '''
+        result = [] # list of sets of vertices that form maximal clique
+        def bk(R, P, X):
+            ''' R, P, X are sets of vertices: 
+                R = recursive clique we are building
+                P = potential vertices we might be able to add to R not yet in clique
+                X = excluding vertices -> we already tried and can't add to R -> use for checking maximal'''
+            print("Hello I am bk")      # for hw to track recursive calls
+            if len(P) == 0 and len(X) == 0:
+                result.append(R)
+            for v in P.copy():
+                #print("DEBUG: " + v + "'s turn.")
+                nv = self.neighbors(v) # set of neighbors of V
+                # recursive call
+                bk(R.union({v}), P.intersection(nv), X.intersection(nv))
+                # move v from P to X 
+                P.remove(v)
+                X.add(v)
+        # start by running bk(empty, all vertices, empty)
+        vertices = self.vertices.copy()
+        bk(set(), vertices, set()) # start with empty, allvertices, empty
+        return result
+                
 
     #################################### OTHER UTILITIES ####################
     def draw_graph(self):
@@ -386,7 +453,12 @@ def make_graph_from_weight_dict(weightDict, directed=True):
 
 if __name__=="__main__":
     ''' test algorithms here '''
-    # some examples ... 
+    # some examples ...
+    # complete K4 graphs with vertex a-d
+    K4 = { 'a' : ['d','b','c'],
+           'b' : ['a' , 'c', 'd'],
+           'c' : ['a','b','d'],
+           'd' : ['a','b','c']}
     graph1 = { 'a' : ['e','b','c'],
                'b' : ['e','d'],
                'c' : ['b'],
@@ -427,10 +499,11 @@ if __name__=="__main__":
     flow1 = { ('s', 'a'):6, ('s','b'):2, ('a','c'):3, ('a','d'):5, ('b','c'):7, ('b','d'):4,
               ('c','t'):8, ('d','t'):1}
 
+    k4 = Graph(K4)
     fg1 = make_graph_from_weight_dict(flow1)
     g1 = Graph(graph1)
     wg1 = Graph(weightedGraph1, weightedGraph1weights, isDirected=True)
     wg2 = Graph(weightedGraph2, weightedGraph2weights, isDirected=True)
-    d, p  = wg1.dag_shortest_path('s')
+    #d, p  = wg1.dag_shortest_path('s')
     #print(wg1.construct_path('s','end',p))
     #print(g1.topological_sort())
