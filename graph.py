@@ -332,9 +332,10 @@ class Graph:
         pass
 
     
-    def bron_kerbosch_nopivot(self):
+    def bron_kerbosch(self, pivot=True):
         ''' List all maximal cliques -> return a list of sets of vertices that form
-            maximal cliques '''
+            maximal cliques
+            Set pivot = False to loop through all vertices '''
         result = [] # list of sets of vertices that form maximal clique
         def bk(R, P, X):
             ''' R, P, X are sets of vertices: 
@@ -344,8 +345,20 @@ class Graph:
             print("Hello I am bk")      # for hw to track recursive calls
             if len(P) == 0 and len(X) == 0:
                 result.append(R)
-            for v in P.copy():
-                #print("DEBUG: " + v + "'s turn.")
+            # this loopSet if else part is just for choosing between the pivot
+            # vs. the nonpivot version of bk. 
+            loopSet = set()         # the set to loop through  
+            if pivot: # if pivot then we choose a pivot vertex u in P U X
+                if len(P.union(X)) > 0: # in case empty
+                    u = list(P.union(X))[0] # just choose a random element of P U X
+                    # we are looping through P \ N(u) instead in pivot version
+                    loopSet = P.difference(self.neighbors(u))
+                else:
+                    loopSet = P.copy()
+            else: # if not pivot then we loop through all of P
+                loopSet = P.copy()
+            ###############################
+            for v in loopSet:
                 nv = self.neighbors(v) # set of neighbors of V
                 # recursive call
                 bk(R.union({v}), P.intersection(nv), X.intersection(nv))
