@@ -302,7 +302,6 @@ class Graph:
                     Q.append( (D[w], w)) # modify priority queue 
         return D, P 
 
-
     def schulze_voting(self):
         #todo
         pass
@@ -331,7 +330,12 @@ class Graph:
         ''' return the degeneracy ordering of a graph as a list '''
         pass
 
-    
+    def greedy_coloring(self, vertexOrder):
+        ''' Input is some order of vertices
+        return a dict of vertex along with a number 1-n such that
+        each vertex is colored appropriately'''
+        pass
+
     def bron_kerbosch(self, pivot=True):
         ''' List all maximal cliques -> return a list of sets of vertices that form
             maximal cliques
