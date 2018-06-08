@@ -322,14 +322,27 @@ class Graph:
         #todo 1.5 approx
         pass
 
+    def gale_shapley(self):
+        ''' stable marriages '''
+        pass
+    
+    def hopcroft_karp(self):
+        ''' find perfect matching on bipartite graphs '''
+        pass 
+
     def elimination_ordering(self):
-        ''' return a list of elimination ordering of a graph '''
+        ''' return a list of elimination ordering of a graph
+        LEXICOGRAPHIC BFS !!! '''
         pass
     
     def degeneracy_ordering(self):
         ''' return the degeneracy ordering of a graph as a list '''
         pass
 
+    def count_triangles(self):
+        ''' return triples of cycles in graph '''
+        pass
+    
     def greedy_coloring(self, vertexOrder):
         ''' Input is some order of vertices
         return a dict of vertex along with a number 1-n such that
@@ -377,7 +390,8 @@ class Graph:
 
     #################################### OTHER UTILITIES ####################
     def draw_graph(self):
-        ''' somehow draw a graph... maybe on a new window with canvas '''
+        ''' somehow draw a graph... maybe on a new window with canvas
+        HINT: use schyner wood algorithm... might be hard '''
         pass
     
     def __str__(self):
@@ -457,6 +471,12 @@ def random_graph(numberVertices, edgeDensity, directed=False, weighted=False, we
     if edgeDensity not in range(0,1):
         raise GraphException("ERROR: edgeDensity must be between 0 and 1")
     # TO DO 
+
+
+def barabasi_albert(d,seed):
+    ''' preferential attachment model for generating graphs randomly that
+        look like a large scale network '''
+    pass
 
 
 def make_graph_from_weight_dict(weightDict, directed=True):
