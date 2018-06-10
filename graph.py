@@ -2,6 +2,7 @@
 # NOTE: WILL ONLY WORK WITH PYTHON 3.0+ 
 
 from collections import defaultdict
+import sys
 import math
 import heapq # for priority queue 
 
@@ -463,6 +464,17 @@ def construct_path(start, end, P):
         elif v == None:
             raise GraphException("cannot find path...")
 
+def full_conn_graph(n):
+    ''' make a fully connected graph w/n verts '''
+    result = {}
+    for i in range(0, n):
+        l = []
+        for j in range(0, n):
+            if i != j:
+                l.append(chr(j+97))
+        result[chr(i+97)] = l
+    return Graph(result)
+
 def random_graph(numberVertices, edgeDensity, directed=False, weighted=False, weightsRange=(1,10)):
     ''' make a random graph with given number of vertices and number of edges
     as a fraction of a complete graph. vertices are named '1', '2', ...
@@ -492,6 +504,11 @@ if __name__=="__main__":
     ''' test algorithms here '''
     # some examples ...
     # complete K4 graphs with vertex a-d
+    K5 = { 'a' : ['d', 'b', 'c', 'e'],
+           'b' : ['a', 'c', 'd', 'e'],
+           'c' : ['a', 'b', 'd', 'e'],
+           'd' : ['a', 'b', 'c', 'e'],
+           'e' : ['a', 'b', 'c', 'd']}
     K4 = { 'a' : ['d','b','c'],
            'b' : ['a' , 'c', 'd'],
            'c' : ['a','b','d'],
@@ -536,11 +553,12 @@ if __name__=="__main__":
     flow1 = { ('s', 'a'):6, ('s','b'):2, ('a','c'):3, ('a','d'):5, ('b','c'):7, ('b','d'):4,
               ('c','t'):8, ('d','t'):1}
 
-    k4 = Graph(K4)
-    fg1 = make_graph_from_weight_dict(flow1)
-    g1 = Graph(graph1)
-    wg1 = Graph(weightedGraph1, weightedGraph1weights, isDirected=True)
-    wg2 = Graph(weightedGraph2, weightedGraph2weights, isDirected=True)
+    #k4 = full_conn_graph(int(sys.argv[1]))
+    #fg1 = make_graph_from_weight_dict(flow1)
+    #g1 = Graph(graph1)
+    #wg1 = Graph(weightedGraph1, weightedGraph1weights, isDirected=True)
+    #wg2 = Graph(weightedGraph2, weightedGraph2weights, isDirected=True)
     #d, p  = wg1.dag_shortest_path('s')
     #print(wg1.construct_path('s','end',p))
     #print(g1.topological_sort())
+    k4.bron_kerbosch(int(sys.argv[1]))
